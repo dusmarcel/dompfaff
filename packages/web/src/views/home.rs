@@ -5,6 +5,7 @@ use dioxus::prelude::*;
 pub fn Home() -> Element {
     rsx! {
        div {
+            class: "bg-pink-500",
             "Hello, dompfaff!"
        }
     }
