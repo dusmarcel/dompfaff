@@ -3,5 +3,9 @@ services:
     build:
       context: .
       target: runtime
+    develop:
+      watch:
+        - action: rebuild
+          path: .
     ports:
       - 8080:8080

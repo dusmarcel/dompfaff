@@ -5,8 +5,11 @@ use dioxus::prelude::*;
 pub fn Home() -> Element {
     rsx! {
        div {
-            class: "bg-pink-500",
+            class: "max-w-4xl mx-auto px-4 sm:px-6 lg:px-8",
+           div {
+            class: "box-gradient p-6 rounded-lg shadow",
             "Hello, dompfaff!"
+           }
        }
     }
 }
