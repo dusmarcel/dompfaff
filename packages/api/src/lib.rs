@@ -2,7 +2,12 @@
 use dioxus::prelude::*;
 
 /// Echo the user input on the server.
-#[post("/api/echo")]
-pub async fn echo(input: String) -> Result<String, ServerFnError> {
-    Ok(input)
+// #[post("/api/echo")]
+// pub async fn echo(input: String) -> Result<String, ServerFnError> {
+//     Ok(input)
+// }
+
+#[get("/api/bar")]
+pub async fn bar() -> Result<String, ServerFnError> {
+    Ok("bar".to_string())
 }

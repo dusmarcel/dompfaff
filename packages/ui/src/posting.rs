@@ -5,13 +5,19 @@ const OUTPUT_CSS: Asset = asset!("/assets/output.css");
 
 #[component]
 pub fn Posting() -> Element {
+    let mut response = use_signal(|| "foo".to_string());
+
     rsx! {
         document::Link { rel: "stylesheet", href: STYLES_CSS}
         document::Link { rel: "stylesheet", href: OUTPUT_CSS }
 
         div {
             class: "box-gradient mt-6 p-6 rounded-lg shadow",
-            "foo"
+            onclick: move |_| async move {
+                let data = api::bar().await.unwrap();
+                response.set(data);
+            },
+            {response}
         }
     }
 }
