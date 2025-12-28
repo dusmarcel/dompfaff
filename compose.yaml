@@ -1,11 +1,7 @@
 services:
-  server:
+  web:
     build:
       context: .
-      target: runtime
-    develop:
-      watch:
-        - action: rebuild
-          path: .
+      dockerfile: Dockerfile
     ports:
-      - 8064:8080
+      - "8064:8080"

@@ -1,35 +1,49 @@
 FROM rust:1 AS chef
-RUN cargo install cargo-chef
 WORKDIR /app
+RUN cargo install cargo-chef
 
 FROM chef AS planner
-COPY . .
+COPY Cargo.toml Cargo.lock ./
+COPY packages ./packages
 RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
-#RUN apt-get update && apt-get install -y curl ca-certificates && \
-#    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-#    apt-get install -y nodejs && \
-#    npm install -g npm@latest
 COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --recipe-path recipe.json
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-RUN cargo binstall dioxus-cli --root /.cargo -y --force
-ENV PATH="/.cargo/bin:$PATH"
-#RUN npm init -y
-#RUN npm install tailwindcss @tailwindcss/cli
+
+# Node + Tailwind
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+   && apt-get install -y nodejs
+RUN npm init -y
+RUN npm install -D tailwindcss @tailwindcss/cli
+
+# Dioxus CLI
+RUN curl -L --proto '=https' --tlsv1.2 -sSf \
+    https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash && \
+    cargo binstall dioxus-cli -y --force
+
+ENV PATH="/root/.cargo/bin:$PATH"
+
 COPY . .
-#WORKDIR /app/packages/ui
-#RUN npx tailwindcss -i ./input.css -o ./assets/output.css --minify
-#WORKDIR /app/packages/web
-#RUN npx tailwindcss -i ./input.css -o ./assets/output.css --minify
-WORKDIR /app
+
+# Tailwind build
+RUN npx tailwindcss \
+  -i ./packages/ui/input.css \
+  -o ./packages/ui/assets/output.css \
+  --minify
+
+RUN npx tailwindcss \
+  -i ./packages/web/input.css \
+  -o ./packages/web/assets/output.css \
+  --minify
+
+# Dioxus bundle
 RUN dx bundle --package web --release
 
-FROM chef AS runtime
-COPY --from=builder /app/target/dx/web/release/web/ /usr/local/app
+FROM debian:bookworm-slim AS runtime
+WORKDIR /usr/local/app
+COPY --from=builder /app/target/dx/web/release/web/ .
 ENV PORT=8080
 ENV IP=0.0.0.0
 EXPOSE 8080
-WORKDIR /usr/local/app
-ENTRYPOINT [ "/usr/local/app/web" ]
+ENTRYPOINT ["/usr/local/app/web"]
